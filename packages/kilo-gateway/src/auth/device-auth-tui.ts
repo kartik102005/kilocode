@@ -10,17 +10,30 @@ import type { AuthOuathResult } from "@kilocode/plugin"
  * @returns Device authorization details
  * @throws Error if initiation fails
  */
-async function initiateDeviceAuth(): Promise<DeviceAuthInitiateResponse> {
+export async function initiateDeviceAuth(): Promise<DeviceAuthInitiateResponse> {
   const response = await fetch(`${KILO_API_BASE}/api/device-auth/codes`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
+    body: JSON.stringify({}),
   })
 
   if (!response.ok) {
     if (response.status === 429) {
       throw new Error("Too many pending authorization requests. Please try again later.")
+    }
+    if (response.status === 403) {
+      throw new Error(
+        "Access denied. This may be due to an invalid API key, account suspension, or region restrictions. Please check your Kilo account status at https://kilo.ai",
+      )
+    }
+    if (response.status === 401) {
+      throw new Error("Authentication required. Please ensure you have a valid Kilo account.")
+    }
+    if (response.status >= 500) {
+      throw new Error("Kilo API server error. Please try again later.")
     }
     throw new Error(`Failed to initiate device authorization: ${response.status}`)
   }
@@ -35,8 +48,12 @@ async function initiateDeviceAuth(): Promise<DeviceAuthInitiateResponse> {
  * @returns Poll response with status and optional token
  * @throws Error if polling fails
  */
-async function pollDeviceAuth(code: string): Promise<DeviceAuthPollResponse> {
-  const response = await fetch(`${KILO_API_BASE}/api/device-auth/codes/${code}`)
+export async function pollDeviceAuth(code: string): Promise<DeviceAuthPollResponse> {
+  const response = await fetch(`${KILO_API_BASE}/api/device-auth/codes/${code}`, {
+    headers: {
+      Accept: "application/json",
+    },
+  })
 
   if (response.status === 202) {
     return { status: "pending" }
@@ -51,6 +68,9 @@ async function pollDeviceAuth(code: string): Promise<DeviceAuthPollResponse> {
   }
 
   if (!response.ok) {
+    if (response.status >= 500) {
+      throw new Error("Kilo API server error. Please try again later.")
+    }
     throw new Error(`Failed to poll device authorization: ${response.status}`)
   }
 
