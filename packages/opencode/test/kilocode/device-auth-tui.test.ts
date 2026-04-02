@@ -14,7 +14,7 @@ describe("device auth error handling", () => {
         return new Response(null, { status: 403, statusText: "Forbidden" })
       }) as any
 
-      await expect(async () => initiateDeviceAuth()).toThrow(/Access denied|invalid API key|account suspension/)
+      await expect(initiateDeviceAuth()).rejects.toThrow(/Access denied|invalid API key|account suspension/)
     })
 
     it("throws descriptive error on 401 unauthorized", async () => {
@@ -22,7 +22,7 @@ describe("device auth error handling", () => {
         return new Response(null, { status: 401, statusText: "Unauthorized" })
       }) as any
 
-      await expect(async () => initiateDeviceAuth()).toThrow(/Authentication required|valid Kilo account/)
+      await expect(initiateDeviceAuth()).rejects.toThrow(/Authentication required|valid Kilo account/)
     })
 
     it("throws descriptive error on 429 rate limit", async () => {
@@ -30,7 +30,7 @@ describe("device auth error handling", () => {
         return new Response(null, { status: 429, statusText: "Too Many Requests" })
       }) as any
 
-      await expect(async () => initiateDeviceAuth()).toThrow(/Too many pending authorization requests/)
+      await expect(initiateDeviceAuth()).rejects.toThrow(/Too many pending authorization requests/)
     })
 
     it("throws descriptive error on 500 server error", async () => {
@@ -38,7 +38,7 @@ describe("device auth error handling", () => {
         return new Response(null, { status: 500, statusText: "Internal Server Error" })
       }) as any
 
-      await expect(async () => initiateDeviceAuth()).toThrow(/Kilo API server error/)
+      await expect(initiateDeviceAuth()).rejects.toThrow(/Kilo API server error/)
     })
 
     it("returns response on success", async () => {
