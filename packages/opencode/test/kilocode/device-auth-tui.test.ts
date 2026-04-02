@@ -10,33 +10,33 @@ describe("device auth error handling", () => {
 
   describe("initiateDeviceAuth", () => {
     it("throws descriptive error on 403 forbidden", async () => {
-      globalThis.fetch = async () => {
+      globalThis.fetch = (async () => {
         return new Response(null, { status: 403, statusText: "Forbidden" })
-      }
+      }) as any
 
       await expect(async () => initiateDeviceAuth()).toThrow(/Access denied|invalid API key|account suspension/)
     })
 
     it("throws descriptive error on 401 unauthorized", async () => {
-      globalThis.fetch = async () => {
+      globalThis.fetch = (async () => {
         return new Response(null, { status: 401, statusText: "Unauthorized" })
-      }
+      }) as any
 
       await expect(async () => initiateDeviceAuth()).toThrow(/Authentication required|valid Kilo account/)
     })
 
     it("throws descriptive error on 429 rate limit", async () => {
-      globalThis.fetch = async () => {
+      globalThis.fetch = (async () => {
         return new Response(null, { status: 429, statusText: "Too Many Requests" })
-      }
+      }) as any
 
       await expect(async () => initiateDeviceAuth()).toThrow(/Too many pending authorization requests/)
     })
 
     it("throws descriptive error on 500 server error", async () => {
-      globalThis.fetch = async () => {
+      globalThis.fetch = (async () => {
         return new Response(null, { status: 500, statusText: "Internal Server Error" })
-      }
+      }) as any
 
       await expect(async () => initiateDeviceAuth()).toThrow(/Kilo API server error/)
     })
@@ -48,12 +48,12 @@ describe("device auth error handling", () => {
         expiresIn: 300,
       }
 
-      globalThis.fetch = async () => {
+      globalThis.fetch = (async () => {
         return new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         })
-      }
+      }) as any
 
       const result = await initiateDeviceAuth()
       expect(result.code).toBe("test-code-123")
@@ -66,7 +66,7 @@ describe("device auth error handling", () => {
       let requestMethod: string | undefined
       let requestHeaders: Record<string, string> = {}
 
-      globalThis.fetch = async (_url: string, init?: RequestInit) => {
+      globalThis.fetch = (async (_url: any, init?: any) => {
         requestMethod = init?.method
         requestBody = init?.body as string
         requestHeaders = (init?.headers as Record<string, string>) || {}
@@ -78,7 +78,7 @@ describe("device auth error handling", () => {
           status: 200,
           headers: { "Content-Type": "application/json" },
         })
-      }
+      }) as any
 
       await initiateDeviceAuth()
 
