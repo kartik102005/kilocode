@@ -24,8 +24,8 @@ function readSettings(): AutocompleteServiceSettings {
   const config = vscode.workspace.getConfiguration(CONFIG_SECTION)
   return {
     enableAutoTrigger: config.get<boolean>("enableAutoTrigger") ?? true,
-    enableSmartInlineTaskKeybinding: config.get<boolean>("enableSmartInlineTaskKeybinding") ?? true,
-    enableChatAutocomplete: config.get<boolean>("enableChatAutocomplete") ?? true,
+    enableSmartInlineTaskKeybinding: config.get<boolean>("enableSmartInlineTaskKeybinding") ?? false,
+    enableChatAutocomplete: config.get<boolean>("enableChatAutocomplete") ?? false,
     snoozeUntil: config.get<number>("snoozeUntil"),
   }
 }
