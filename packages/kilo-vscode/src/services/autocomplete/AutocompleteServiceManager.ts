@@ -24,8 +24,8 @@ function readSettings(): AutocompleteServiceSettings {
   const config = vscode.workspace.getConfiguration(CONFIG_SECTION)
   return {
     enableAutoTrigger: config.get<boolean>("enableAutoTrigger") ?? true,
-    enableSmartInlineTaskKeybinding: config.get<boolean>("enableSmartInlineTaskKeybinding") ?? true,
-    enableChatAutocomplete: config.get<boolean>("enableChatAutocomplete") ?? true,
+    enableSmartInlineTaskKeybinding: config.get<boolean>("enableSmartInlineTaskKeybinding") ?? false,
+    enableChatAutocomplete: config.get<boolean>("enableChatAutocomplete") ?? false,
     snoozeUntil: config.get<number>("snoozeUntil"),
   }
 }
@@ -103,6 +103,16 @@ export class AutocompleteServiceManager {
     this.unsubscribeEvent = connectionService.onEventFiltered(
       (event) => event.type === "global.disposed",
       () => this.inlineCompletionProvider.resetBackoff(),
+    )
+
+    // Reload when VS Code settings change so autocomplete
+    // picks up toggles immediately without requiring a restart.
+    this.context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration(CONFIG_SECTION)) {
+          void this.load()
+        }
+      }),
     )
 
     void this.load()
