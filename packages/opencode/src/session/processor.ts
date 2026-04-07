@@ -159,9 +159,10 @@ export namespace SessionProcessor {
                     toolcalls[value.toolCallId] = created as MessageV2.ToolPart
                   }
                   // kilocode_change end
-                  // kilocode_change start - track snapshot before file-modifying tool execution
+                  // kilocode_change start - track snapshot before file-modifying tool execution (VSCode only)
                   const fileModifyingTools = ["edit", "write", "apply_patch", "bash", "task"]
-                  const shouldSnapshot = fileModifyingTools.includes(value.toolName)
+                  const shouldSnapshot =
+                    process.env.KILO_PLATFORM === "vscode" && fileModifyingTools.includes(value.toolName)
                   const toolSnapshot = shouldSnapshot ? await Snapshot.track() : undefined
                   // kilocode_change end
                   const match = toolcalls[value.toolCallId]
@@ -214,7 +215,7 @@ export namespace SessionProcessor {
                   const match = toolcalls[value.toolCallId]
                   if (match && match.state.status === "running") {
                     let snapshotFiles: string[] | undefined
-                    if (match.snapshot) {
+                    if (process.env.KILO_PLATFORM === "vscode" && match.snapshot) {
                       const patch = await Snapshot.patch(match.snapshot)
                       snapshotFiles = patch.files
                     }
@@ -244,7 +245,7 @@ export namespace SessionProcessor {
                   const match = toolcalls[value.toolCallId]
                   if (match && match.state.status === "running") {
                     let snapshotFiles: string[] | undefined
-                    if (match.snapshot) {
+                    if (process.env.KILO_PLATFORM === "vscode" && match.snapshot) {
                       const patch = await Snapshot.patch(match.snapshot)
                       snapshotFiles = patch.files
                     }

@@ -1414,6 +1414,7 @@ export interface RevertSessionRequest {
   type: "revertSession"
   sessionID: string
   messageID: string
+  partID?: string
 }
 
 export interface UnrevertSessionRequest {
