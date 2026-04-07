@@ -337,6 +337,7 @@ export namespace MessageV2 {
     tool: z.string(),
     state: ToolState,
     snapshot: z.string().optional(),
+    snapshotFiles: z.string().array().optional(),
     metadata: z.record(z.string(), z.any()).optional(),
   }).meta({
     ref: "ToolPart",

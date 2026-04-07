@@ -62,13 +62,11 @@ export namespace SessionRevert {
         const isTargetMessage = msg.info.id === revert!.messageID
         for (const part of msg.parts) {
           if (isTargetMessage && revert!.partID && part.id !== revert!.partID && part.id > revert!.partID) break
-          if (part.type === "tool" && part.snapshot) {
+          if (part.type === "tool" && part.snapshot && part.snapshotFiles) {
             if (part.state.status === "completed" || part.state.status === "error") {
-              const patchPart = msg.parts.find((p) => p.type === "patch" && "hash" in p && p.hash === part.snapshot)
-              const patchFiles = patchPart && "files" in patchPart ? patchPart.files : []
               toolPatches.push({
                 hash: part.snapshot,
-                files: patchFiles,
+                files: part.snapshotFiles,
               })
             }
           }
