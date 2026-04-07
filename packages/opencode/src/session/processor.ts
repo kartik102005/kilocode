@@ -159,11 +159,17 @@ export namespace SessionProcessor {
                     toolcalls[value.toolCallId] = created as MessageV2.ToolPart
                   }
                   // kilocode_change end
+                  // kilocode_change start - track snapshot before file-modifying tool execution
+                  const fileModifyingTools = ["edit", "write", "apply_patch", "bash", "task"]
+                  const shouldSnapshot = fileModifyingTools.includes(value.toolName)
+                  const toolSnapshot = shouldSnapshot ? await Snapshot.track() : undefined
+                  // kilocode_change end
                   const match = toolcalls[value.toolCallId]
                   if (match) {
                     const part = await Session.updatePart({
                       ...match,
                       tool: value.toolName,
+                      snapshot: toolSnapshot,
                       state: {
                         status: "running",
                         input: value.input,

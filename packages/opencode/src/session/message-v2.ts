@@ -336,6 +336,7 @@ export namespace MessageV2 {
     callID: z.string(),
     tool: z.string(),
     state: ToolState,
+    snapshot: z.string().optional(),
     metadata: z.record(z.string(), z.any()).optional(),
   }).meta({
     ref: "ToolPart",
