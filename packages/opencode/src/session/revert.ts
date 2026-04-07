@@ -59,11 +59,17 @@ export namespace SessionRevert {
       const toolPatches: Snapshot.Patch[] = []
 
       for (const msg of rangeMessages) {
+        const isTargetMessage = msg.info.id === revert!.messageID
         for (const part of msg.parts) {
+          if (isTargetMessage && revert!.partID && part.id !== revert!.partID && part.id > revert!.partID) break
           if (part.type === "tool" && part.snapshot) {
-            const toolPatch = await Snapshot.patch(part.snapshot)
-            if (toolPatch.files.length) {
-              toolPatches.push(toolPatch)
+            if (part.state.status === "completed" || part.state.status === "error") {
+              const patchPart = msg.parts.find((p) => p.type === "patch" && "hash" in p && p.hash === part.snapshot)
+              const patchFiles = patchPart && "files" in patchPart ? patchPart.files : []
+              toolPatches.push({
+                hash: part.snapshot,
+                files: patchFiles,
+              })
             }
           }
         }
@@ -73,17 +79,19 @@ export namespace SessionRevert {
 
       if (toolPatches.length > 0) {
         await Snapshot.revert(toolPatches)
-        if (toolPatches[0]?.hash) {
-          diffs = await Snapshot.diffFull(toolPatches[0].hash, "HEAD")
+        const revertedHash = toolPatches[0]?.hash
+        if (revertedHash) {
+          diffs = await Snapshot.diffFull(revertedHash, "HEAD")
         } else {
           diffs = []
         }
       } else {
-        revert.snapshot = session.revert?.snapshot ?? (await Snapshot.track())
         diffs = await SessionSummary.computeDiff({ messages: rangeMessages })
         await Snapshot.revert(patches)
-        if (revert.snapshot) revert.diff = await Snapshot.diff(revert.snapshot)
       }
+
+      revert.snapshot = session.revert?.snapshot ?? (await Snapshot.track())
+      if (revert.snapshot) revert.diff = await Snapshot.diff(revert.snapshot)
 
       await Storage.write(["session_diff", input.sessionID], diffs)
       Bus.publish(Session.Event.Diff, {
