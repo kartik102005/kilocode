@@ -91,7 +91,8 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
           const isUpstreamSuppressed =
             part.type === "tool" && UPSTREAM_SUPPRESSED_TOOLS.has((part as SDKPart & { tool: string }).tool)
           const toolPart = part as unknown as ToolPart
-          const hasSnapshot = part.type === "tool" && fileModifyingTools.has(toolPart.tool) && toolPart.snapshot
+          const hasSnapshot =
+            part.type === "tool" && fileModifyingTools.has(toolPart.tool) && toolPart.snapshot && toolPart.snapshotFiles
           return (
             <Show when={isUpstreamSuppressed || PART_MAPPING[part.type]}>
               <div
