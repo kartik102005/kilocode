@@ -243,8 +243,14 @@ export namespace SessionProcessor {
                 case "tool-error": {
                   const match = toolcalls[value.toolCallId]
                   if (match && match.state.status === "running") {
+                    let snapshotFiles: string[] | undefined
+                    if (match.snapshot) {
+                      const patch = await Snapshot.patch(match.snapshot)
+                      snapshotFiles = patch.files
+                    }
                     await Session.updatePart({
                       ...match,
+                      snapshotFiles,
                       state: {
                         status: "error",
                         input: value.input ?? match.state.input,
