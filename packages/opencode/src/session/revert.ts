@@ -61,7 +61,20 @@ export namespace SessionRevert {
       for (const msg of rangeMessages) {
         const isTargetMessage = msg.info.id === revert!.messageID
         for (const part of msg.parts) {
-          if (isTargetMessage && revert!.partID && part.id !== revert!.partID && part.id > revert!.partID) break
+          if (isTargetMessage && revert!.partID) {
+            if (part.id === revert!.partID) {
+              if (part.type === "tool" && part.snapshot && part.snapshotFiles) {
+                if (part.state.status === "completed" || part.state.status === "error") {
+                  toolPatches.push({
+                    hash: part.snapshot,
+                    files: part.snapshotFiles,
+                  })
+                }
+              }
+              break
+            }
+            continue
+          }
           if (part.type === "tool" && part.snapshot && part.snapshotFiles) {
             if (part.state.status === "completed" || part.state.status === "error") {
               toolPatches.push({
@@ -75,11 +88,13 @@ export namespace SessionRevert {
 
       let diffs: Snapshot.FileDiff[]
 
+      const redoSnapshot = await Snapshot.track()
+
       if (toolPatches.length > 0) {
         await Snapshot.revert(toolPatches)
         const revertedHash = toolPatches[0]?.hash
-        if (revertedHash) {
-          diffs = await Snapshot.diffFull(revertedHash, "HEAD")
+        if (revertedHash && redoSnapshot) {
+          diffs = await Snapshot.diffFull(revertedHash, redoSnapshot)
         } else {
           diffs = []
         }
@@ -88,7 +103,7 @@ export namespace SessionRevert {
         await Snapshot.revert(patches)
       }
 
-      revert.snapshot = session.revert?.snapshot ?? (await Snapshot.track())
+      revert.snapshot = redoSnapshot
       if (revert.snapshot) revert.diff = await Snapshot.diff(revert.snapshot)
 
       await Storage.write(["session_diff", input.sessionID], diffs)

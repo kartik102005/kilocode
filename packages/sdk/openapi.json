@@ -5966,6 +5966,9 @@
                   "projectID": {
                     "type": "string"
                   },
+                  "force": {
+                    "type": "boolean"
+                  },
                   "workspaceID": {
                     "type": "string"
                   },
@@ -11432,6 +11435,15 @@
           },
           "state": {
             "$ref": "#/components/schemas/ToolState"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "snapshotFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "metadata": {
             "type": "object",
